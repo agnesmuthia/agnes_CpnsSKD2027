@@ -264,6 +264,12 @@ table.data th { background: var(--bg-soft); }
 @media (max-width: 560px) {
   body { font-size: 15px; }
   .brand-text { display: none; }
+  .topbar { flex-wrap: wrap; row-gap: .4rem; }
+  .theme-btn { margin-left: auto; }
+  .nav { order: 3; width: 100%; margin-left: 0; justify-content: space-between; }
+  .nav a { padding: .35rem .5rem; font-size: .88rem; }
+  .exam-bar, .qnav { top: 96px; }
+  body.exam-mode .exam-bar { top: 52px; }
   .hero { padding: 1.1rem; }
   .hero h1 { font-size: 1.55rem; }
   .card, .qcard { padding: 1rem; }
