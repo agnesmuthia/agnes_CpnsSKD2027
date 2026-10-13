@@ -8,8 +8,8 @@
   const BLUEPRINT = {
     TWK: { 'twk-nasionalisme': 6, 'twk-integritas': 6, 'twk-belanegara': 6, 'twk-pilar': 7, 'twk-bahasa': 5 },
     TIU: {
-      'ver-analogi': 3, 'ver-logika': 4, 'ver-analitis': 3, 'ver-argumen': 3,
-      'num-deret': 3, 'num-tabel': 4, 'num-cerita': 6, 'num-kecukupan': 4,
+      'ver-analogi': 2, 'ver-logika': 3, 'ver-analitis': 2, 'ver-argumen': 6,
+      'num-deret': 2, 'num-tabel': 5, 'num-cerita': 5, 'num-kecukupan': 5,
       'fig-serial': 5
     },
     TKP: { 'tkp-pelayanan': 8, 'tkp-jejaring': 7, 'tkp-sosbud': 8, 'tkp-tik': 7, 'tkp-profesional': 8, 'tkp-radikal': 7 }

@@ -98,6 +98,12 @@
 
   /* ============ POLA BILANGAN TABEL TIPE I (grid 3×3) ============ */
   const gridRules = [
+    { f: (a, b) => a * a - b * b, d: '(kolom 1)² − (kolom 2)²', ra: [6, 15], rb: [1, 5] },
+    { f: (a, b) => a * b + a + b, d: 'kolom 1 × kolom 2 + kolom 1 + kolom 2', ra: [2, 8], rb: [2, 8] },
+    { f: (a, b) => 3 * a + 2 * b, d: '3 × kolom 1 + 2 × kolom 2', ra: [2, 25], rb: [2, 20] },
+    { f: (a, b) => a * b - b, d: 'kolom 1 × kolom 2 − kolom 2', ra: [3, 12], rb: [2, 9] },
+    { f: (a, b) => (a - b) * 2, d: '(kolom 1 − kolom 2) × 2', ra: [10, 30], rb: [1, 9] },
+    { f: (a, b) => (a + b) * (a - b), d: '(kolom 1 + kolom 2) × (kolom 1 − kolom 2)', ra: [6, 14], rb: [1, 5] },
     { f: (a, b) => a + b, d: 'kolom 1 + kolom 2', ra: [5, 40], rb: [5, 40] },
     { f: (a, b) => a * b, d: 'kolom 1 × kolom 2', ra: [2, 9], rb: [2, 9] },
     { f: (a, b) => (a + b) * (a + b), d: '(kolom 1 + kolom 2)²', ra: [1, 7], rb: [1, 7] },
@@ -171,7 +177,7 @@
     return html + '</tbody></table>';
   }
   function polaTabel2(r) {
-    const type = R(r, 0, 4);
+    const type = R(r, 0, 6);
     if (type <= 1) { // aritmetika naik/turun, tanya Uk
       const down = type === 1;
       const b = down ? -pick(r, [2, 3, 4, 5, 6, 7, 8, 9]) : pick(r, [3, 4, 5, 6, 7, 8, 9, 11, 12, 15, 25, 45]);
@@ -214,6 +220,30 @@
           'Nilai yang tepat untuk menggantikan tanda <b>?</b> adalah ….',
         o: numOpts(r, ans, { step: U(k - 1), extra: [U(k - 1) + U(k - 2), ans + a, ans - a] }),
         e: `Barisan geometri dengan U₁ = ${a} dan rasio ${ratio}. Uₙ = ${a} × ${ratio}ⁿ⁻¹, sehingga U${k} = ${a} × ${ratio}^${k - 1} = ${fmt(ans)}.`,
+        numeric: true
+      };
+    }
+    if (type === 5) { // tabel tidak dimulai dari No. 1
+      const b = pick(r, [3, 4, 5, 6, 7, 8, 9, 12, 15, 25]), a = R(r, 2, 40);
+      const U = n => a + (n - 1) * b;
+      const st = R(r, 3, 6), k = R(r, 12, 20);
+      return {
+        q: 'Perhatikan tabel berikut!' + tableNo([[st, U(st)], [st + 1, U(st + 1)], [st + 2, U(st + 2)], ['⋮', '⋮'], [k, '<b>?</b>']]) +
+          'Nilai yang tepat untuk menggantikan tanda <b>?</b> adalah ….',
+        o: numOpts(r, U(k), { step: b }),
+        e: `Beda b = ${U(st + 1)} − ${U(st)} = ${b}. Dari No. ${st} ke No. ${k} ada ${k - st} langkah, sehingga nilai = ${U(st)} + ${k - st} × ${b} = ${fmt(U(k))}.`,
+        numeric: true
+      };
+    }
+    if (type === 6) { // selisih dua nomor
+      const b = pick(r, [3, 4, 5, 6, 7, 8, 9, 11, 12, 15]), a = R(r, 2, 40);
+      const U = n => a + (n - 1) * b;
+      const m = R(r, 3, 8), k = R(r, 12, 22);
+      return {
+        q: 'Perhatikan tabel berikut!' + tableNo([[1, U(1)], [2, U(2)], [3, U(3)], ['⋮', '⋮'], [30, fmt(U(30))]]) +
+          `Selisih nilai pada No. ${k} dan No. ${m} adalah ….`,
+        o: numOpts(r, U(k) - U(m), { step: b }),
+        e: `b = ${b}. Selisih = (${k} − ${m}) × ${b} = ${fmt(U(k) - U(m))}. Nilai awal tidak diperlukan karena selisih hanya bergantung pada beda.`,
         numeric: true
       };
     }
@@ -561,12 +591,65 @@
       const d2 = pick(r, [2, 4, 6]);
       return kdBuild(table, Q, `Selisih nilai ${names[0]} dan ${names[4]} adalah ${d2}.`, `Nilai ${names[0]} merupakan bilangan ${dina % 2 ? 'ganjil' : 'genap'}.`, 'E', `Kemungkinan x = ${dina - d2} atau ${dina + d2}; keduanya sama-sama ${dina % 2 ? 'ganjil' : 'genap'}, sehingga pernyataan (2) tidak membantu memilih.`);
     }
+    ,function jarakKD(r) {
+      const [A, B] = pick(r, [['Mobil A', 'Mobil B'], ['Bus P', 'Bus Q'], ['Kereta X', 'Kereta Y'], ['Truk 1', 'Truk 2']]);
+      const a = pick(r, [40, 50, 60, 70, 80]), tA = R(r, 2, 4), tB = R(r, 2, 4), d = pick(r, [10, 20]);
+      const v = a + d, D = v * tB, DA = a * tA;
+      if (D === DA) return jarakKD(r);
+      const table = tbl(['Kendaraan', 'Kecepatan', 'Waktu Tempuh'], [[A, a + ' km/jam', tA + ' jam'], [B, '<i>v</i> km/jam', tB + ' jam']]);
+      const Q = `Berapakah jarak yang ditempuh ${B}?`;
+      const ex = `Jarak ${B} = v × ${tB}; yang dibutuhkan adalah nilai v (v = ${v}, jarak = ${D} km).`;
+      const cmp = `${B} melaju lebih cepat daripada ${A}.`, junk = `${B} mengangkut muatan lebih berat daripada ${A}.`;
+      const diff = D - DA;
+      const dist = `Jarak yang ditempuh ${B} ${diff > 0 ? 'lebih jauh' : 'lebih dekat'} ${Math.abs(diff)} km daripada ${A}.`;
+      const cfg = R(r, 0, 4);
+      if (cfg === 0) return kdBuild(table, Q, `Kecepatan ${B} adalah ${v} km/jam.`, junk, 'A', ex + ' Pernyataan (1) memberi v langsung; (2) tidak berkaitan dengan jarak.');
+      if (cfg === 1) return kdBuild(table, Q, junk, dist, 'B', `Jarak ${A} = ${a} × ${tA} = ${DA} km, sehingga dari (2) jarak ${B} = ${DA} ${diff > 0 ? '+' : '−'} ${Math.abs(diff)} = ${D} km. Pernyataan (1) tidak membantu.`);
+      if (cfg === 2) return kdBuild(table, Q, cmp, `Selisih kecepatan ${A} dan ${B} adalah ${d} km/jam.`, 'C', ex + ` Sendiri-sendiri tidak cukup: (1) hanya perbandingan, (2) memberi dua kemungkinan v (${a - d} atau ${a + d}); bersama-sama v = ${a} + ${d} = ${v}.`);
+      if (cfg === 3) return kdBuild(table, Q, `Kecepatan ${B} adalah ${v} km/jam.`, `Kecepatan ${B} lebih tinggi ${d} km/jam daripada ${A}.`, 'D', ex + ' Masing-masing pernyataan menentukan v.');
+      return kdBuild(table, Q, cmp, junk, 'E', ex + ' Hanya diketahui B lebih cepat; nilai v tidak dapat dipastikan.');
+    },
+    function diskonKD(r) {
+      const [P, Qn] = pick(r, [['Sepatu', 'Tas'], ['Kemeja', 'Celana'], ['Printer', 'Pemindai'], ['Meja', 'Kursi']]);
+      const hp = R(r, 2, 8) * 50, dp = pick(r, [10, 20, 25]);
+      const dq = pick(r, [10, 20, 25, 50]);
+      const unit = dq === 25 ? 4 : dq === 50 ? 2 : 10; // agar hasil bulat
+      const hq = Math.max(unit * 10, Math.round(R(r, 100, 500) / (unit * 10)) * unit * 10);
+      if (hq === hp) return diskonKD(r); // perbandingan harga harus tegas
+      const paidP = hp * (100 - dp) / 100, paidQ = hq * (100 - dq) / 100, total = paidP + paidQ;
+      const table = tbl(['Barang', 'Harga Awal', 'Diskon'], [[P, 'Rp' + hp + ' ribu', dp + '%'], [Qn, 'Rp<i>h</i> ribu', dq + '%']]);
+      const Q = `Berapakah total yang harus dibayar untuk kedua barang setelah diskon?`;
+      const ex = `Total = Rp${fmt(paidP)} ribu + ${100 - dq}% × h; perlu nilai h (h = ${hq}, total = Rp${fmt(total)} ribu).`;
+      const cfg = R(r, 0, 4);
+      if (cfg === 0) return kdBuild(table, Q, `Harga ${Qn} setelah diskon adalah Rp${fmt(paidQ)} ribu.`, `${Qn} ${hq > hp ? 'lebih mahal' : 'lebih murah'} daripada ${P} sebelum diskon.`, 'A', ex + ' Dari (1) diperoleh harga bayar langsung; (2) hanya perbandingan.');
+      if (cfg === 1) return kdBuild(table, Q, `${Qn} dibeli di toko yang sama dengan ${P}.`, `Total harga awal kedua barang adalah Rp${fmt(hp + hq)} ribu.`, 'B', ex + ` Dari (2): h = ${fmt(hp + hq)} − ${hp} = ${hq}. Pernyataan (1) tidak relevan.`);
+      if (cfg === 2) return kdBuild(table, Q, `Harga awal ${Qn} adalah Rp${fmt(hq)} ribu.`, `Total harga awal kedua barang adalah Rp${fmt(hp + hq)} ribu.`, 'D', ex + ' Masing-masing pernyataan menentukan h.');
+      if (cfg === 3) return kdBuild(table, Q, `Harga awal ${Qn} dua kali harga awal Barang R.`, `Harga awal Barang R adalah Rp${fmt(hq / 2)} ribu.`, 'C', ex + ` Gabungan: h = 2 × ${fmt(hq / 2)} = ${hq}. Satu pernyataan saja tidak cukup.`);
+      return kdBuild(table, Q, `${Qn} dibeli di toko yang sama dengan ${P}.`, 'Diskon berlaku sampai akhir bulan.', 'E', ex + ' Tidak ada informasi tentang nilai h.');
+    },
+    function luasKD(r) {
+      const [P, Qn] = pick(r, [['Bidang P', 'Bidang Q'], ['Kebun A', 'Kebun B'], ['Ruang 1', 'Ruang 2'], ['Lahan X', 'Lahan Y']]);
+      const lp = R(r, 4, 12), pp = lp + R(r, 2, 8), lq = R(r, 3, 12), pq = lp + R(r, 2, 9);
+      const L = pq * lq, K = 2 * (pq + lq), dsel = pq - pp;
+      if (dsel === 0) return luasKD(r);
+      const table = tbl(['Bangun', 'Panjang (m)', 'Lebar (m)'], [[P, pp, lp], [Qn, '<i>q</i>', lq]]);
+      const Q = `Berapakah luas ${Qn}?`;
+      const ex = `Luas ${Qn} = q × ${lq}; perlu nilai q (q = ${pq}, luas = ${L} m²).`;
+      const rel = `Panjang ${Qn} sama dengan lebar ${P} ditambah ${pq - lp} m.`;
+      const trivial = `${Qn} berbentuk persegi panjang.`;
+      const cfg = R(r, 0, 4);
+      if (cfg === 0) return kdBuild(table, Q, `Keliling ${Qn} adalah ${K} m.`, trivial, 'A', ex + ` Dari (1): q = ${K}/2 − ${lq} = ${pq}. Pernyataan (2) sudah diketahui dari tabel.`);
+      if (cfg === 1) return kdBuild(table, Q, `${Qn} lebih lebar daripada ${P}.`.replace('lebih lebar', lq > lp ? 'lebih lebar' : 'tidak lebih lebar'), rel, 'B', ex + ` Dari (2): q = ${lp} + ${pq - lp} = ${pq}. Pernyataan (1) hanya perbandingan lebar.`);
+      if (cfg === 2) return kdBuild(table, Q, `Keliling ${Qn} adalah ${K} m.`, rel, 'D', ex + ' Masing-masing pernyataan menentukan q.');
+      if (cfg === 3) return kdBuild(table, Q, `${Qn} lebih panjang daripada ${P}.`.replace('lebih panjang', dsel > 0 ? 'lebih panjang' : 'lebih pendek'), `Selisih panjang ${Qn} dan ${P} adalah ${Math.abs(dsel)} m.`, 'C', ex + ` (1) hanya arah dan (2) memberi dua kemungkinan q (${pp - Math.abs(dsel)} atau ${pp + Math.abs(dsel)}); bersama-sama q = ${pq}.`);
+      return kdBuild(table, Q, trivial, `${Qn} dikelilingi pagar berwarna putih.`, 'E', ex + ' Tidak ada informasi yang menentukan q.');
+    }
   ];
   function kecukupan(r, i) { return kdFamilies[i % kdFamilies.length](r); }
 
   bank.register({ key: 'tiu-deret', cat: 'TIU', group: 'num-deret', label: 'Deret Angka', count: 450, make: deret });
-  bank.register({ key: 'tiu-tabel1', cat: 'TIU', group: 'num-tabel', label: 'Pola Bilangan Tabel Tipe I', count: 450, make: polaTabel1 });
-  bank.register({ key: 'tiu-tabel2', cat: 'TIU', group: 'num-tabel', label: 'Pola Bilangan Tabel Tipe II', count: 450, make: polaTabel2 });
+  bank.register({ key: 'tiu-tabel1', cat: 'TIU', group: 'num-tabel', label: 'Pola Bilangan Tabel Tipe I', count: 700, make: polaTabel1 });
+  bank.register({ key: 'tiu-tabel2', cat: 'TIU', group: 'num-tabel', label: 'Pola Bilangan Tabel Tipe II', count: 700, make: polaTabel2 });
   bank.register({ key: 'tiu-cerita', cat: 'TIU', group: 'num-cerita', label: 'Soal Cerita (Aritmetika)', count: 520, make: soalCerita });
-  bank.register({ key: 'tiu-kecukupan', cat: 'TIU', group: 'num-kecukupan', label: 'Kecukupan Pernyataan', count: 420, make: kecukupan });
+  bank.register({ key: 'tiu-kecukupan', cat: 'TIU', group: 'num-kecukupan', label: 'Kecukupan Pernyataan', count: 630, make: kecukupan });
 })(typeof window !== 'undefined' ? window : globalThis);
