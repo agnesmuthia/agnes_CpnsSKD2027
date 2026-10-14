@@ -11,11 +11,11 @@ Aplikasi web untuk latihan rutin Seleksi Kompetensi Dasar (SKD) CPNS: **TWK, TIU
 - **Hasil & pembahasan** lengkap, analisis capaian per materi, riwayat, grafik perkembangan skor, dan hitungan hari beruntun.
 - Navigasi soal, tanda ragu-ragu, pintasan keyboard (A–E / 1–5, ← →), mode gelap, tampilan ponsel.
 
-## Bank soal (5.759 soal)
+## Bank soal (7.329 soal)
 
 | Komponen | Jumlah | Materi |
 |---|---|---|
-| TIU | 4.926 | Logika argumen (paling memperkuat, paling memperlemah, tidak memperkuat, tidak memperlemah, asumsi, simpulan; 266 soal), pola bilangan tabel tipe I & II, kecukupan pernyataan, silogisme & logika, penalaran analitis, analogi, deret, soal cerita, figural |
+| TIU | 6.496 | Logika argumen (paling memperkuat, paling memperlemah, tidak memperkuat, tidak memperlemah; 486 soal dari 40+ topik), pola bilangan tabel tipe I (1.200) & II (1.100) termasuk pola kuadrat dan selisih bertingkat, kecukupan pernyataan (1.080), silogisme & logika, penalaran analitis, analogi, deret, soal cerita, figural |
 | TWK | 430 | Nasionalisme, integritas, bela negara, pilar negara (UUD NRI 1945, Pancasila), bahasa negara |
 | TKP | 403 | Pelayanan publik, jejaring kerja, sosial budaya, TIK, profesionalisme, anti radikalisme (termasuk skenario guru & sekolah) |
 
