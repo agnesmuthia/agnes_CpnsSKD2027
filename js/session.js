@@ -150,6 +150,11 @@
     return { cats: res, total, max: s.ids.length * 5, pass: allPass, byGroup };
   }
 
+  /* Sidik jari isi soal: dipakai untuk mendeteksi bila bank soal berubah setelah sesi disimpan. */
+  function fingerprint(ids) {
+    return util.hash(ids.map(id => (bank.get(id) || { q: '' }).q).join('\u0001'));
+  }
+
   /* ---------- riwayat & statistik ---------- */
   function finish(s) {
     s.end = Date.now();
@@ -160,7 +165,7 @@
     const hist = store.get('history', []);
     hist.unshift({
       id: s.id, mode: s.mode, title: s.title, date: s.date, seed: s.seed, start: s.start, end: s.end, learn: s.learn,
-      ids: s.ids, orders: s.orders, answers: s.answers, flags: s.flags,
+      ids: s.ids, orders: s.orders, answers: s.answers, flags: s.flags, chk: fingerprint(s.ids),
       sum: { TWK: g.cats.TWK.score, TIU: g.cats.TIU.score, TKP: g.cats.TKP.score, total: g.total, max: g.max, pass: g.pass }
     });
     while (hist.length > 80) hist.pop();
@@ -198,6 +203,6 @@
       const g = {}; g[group] = n;
       return build({ mode: 'topik', title: 'Latihan ' + (GROUP_LABEL[group] || group), seed: 'grp-' + group + Date.now(), groups: g, learn: true });
     },
-    grade, finish, scoreOf, streak, groupPool
+    grade, finish, scoreOf, streak, groupPool, fingerprint
   };
 })(typeof window !== 'undefined' ? window : globalThis);

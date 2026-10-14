@@ -121,9 +121,9 @@
     { f: (a, b) => a * b - a - b, d: 'kolom 1 × kolom 2 − (kolom 1 + kolom 2)', ra: [3, 10], rb: [3, 10] },
     { f: (a, b) => a * a + b * b, d: '(kolom 1)² + (kolom 2)²', ra: [1, 9], rb: [1, 9] }
   ];
-  function polaTabel1(r) {
+  function gridGen(r, rules, all) {
     for (let attempt = 0; attempt < 30; attempt++) {
-      const rule = pick(r, gridRules);
+      const rule = pick(r, rules);
       const rows = [];
       const used = new Set();
       while (rows.length < 3) {
@@ -135,7 +135,7 @@
         rows.push([a, b, c]);
       }
       // pastikan pola tidak ambigu dengan aturan lain yang cocok untuk semua baris
-      const others = gridRules.filter(g => g !== rule && rows.every(([a, b, c]) => g.f(a, b) === c));
+      const others = (all || rules).filter(g => g !== rule && rows.every(([a, b, c]) => g.f(a, b) === c));
       if (others.length) continue;
       const rowIdx = R(r, 0, 2);
       const colIdx = r() < 0.6 ? 2 : R(r, 0, 1);
@@ -169,6 +169,25 @@
     }
     return deret(r);
   }
+
+  function polaTabel1(r) { return gridGen(r, gridRules); }
+
+  /* Aturan tambahan (generator baru 'tiu-tabel1b'; tidak mengubah soal lama) */
+  const gridRules2 = [
+    { f: (a, b) => 30 - a - b, d: '30 − kolom 1 − kolom 2 (jumlah setiap baris = 30)', ra: [5, 14], rb: [5, 14] },
+    { f: (a, b) => 45 - a - b, d: '45 − kolom 1 − kolom 2 (jumlah setiap baris = 45)', ra: [10, 22], rb: [10, 22] },
+    { f: (a, b) => 60 - a - b, d: '60 − kolom 1 − kolom 2 (jumlah setiap baris = 60)', ra: [15, 28], rb: [15, 28] },
+    { f: (a, b) => 2 * a * b, d: '2 × kolom 1 × kolom 2', ra: [2, 9], rb: [2, 9] },
+    { f: (a, b) => b * (a + b), d: 'kolom 2 × (kolom 1 + kolom 2)', ra: [2, 8], rb: [2, 8] },
+    { f: (a, b) => a * (a + b), d: 'kolom 1 × (kolom 1 + kolom 2)', ra: [2, 8], rb: [2, 8] },
+    { f: (a, b) => a * a + 2 * b, d: '(kolom 1)² + 2 × kolom 2', ra: [2, 12], rb: [1, 15] },
+    { f: (a, b) => 2 * a * a - b, d: '2 × (kolom 1)² − kolom 2', ra: [3, 10], rb: [1, 15] },
+    { f: (a, b) => 4 * a - b, d: '4 × kolom 1 − kolom 2', ra: [5, 25], rb: [1, 15] },
+    { f: (a, b) => 5 * b - a, d: '5 × kolom 2 − kolom 1', ra: [1, 20], rb: [5, 20] },
+    { f: (a, b) => (a + 1) * (b + 2), d: '(kolom 1 + 1) × (kolom 2 + 2)', ra: [2, 9], rb: [2, 8] },
+    { f: (a, b) => a * a * a - b, d: '(kolom 1)³ − kolom 2', ra: [2, 7], rb: [1, 20] }
+  ];
+  function polaTabel1b(r) { return gridGen(r, gridRules2, gridRules2.concat(gridRules)); }
 
   /* ============ POLA BILANGAN TABEL TIPE II (No. – Nilai) ============ */
   function tableNo(rows) {
@@ -647,9 +666,121 @@
   ];
   function kecukupan(r, i) { return kdFamilies[i % kdFamilies.length](r); }
 
+
+  /* ============ TABEL TIPE II TAMBAHAN: pola kuadrat & selisih bertingkat ============ */
+  function polaTabel3(r) {
+    const type = R(r, 0, 4);
+    const k = R(r, 8, 15);
+    const rows4 = U => [[1, fmt(U(1))], [2, fmt(U(2))], [3, fmt(U(3))], [4, fmt(U(4))]];
+    const dots = [['⋮', '⋮']];
+    if (type === 0) { // n² + c
+      const c = R(r, -5, 12);
+      const U = n => n * n + c;
+      const lin = U(4) + (k - 4) * (U(4) - U(3));
+      return {
+        q: 'Perhatikan tabel berikut!' + tableNo(rows4(U).concat(dots, [[k, '<b>?</b>']])) + 'Nilai yang tepat untuk menggantikan tanda <b>?</b> adalah ….',
+        o: numOpts(r, U(k), { step: Math.max(2, Math.round(U(k) * 0.07)), extra: [lin, U(k) + k, U(k - 1)], allowNeg: true }),
+        e: `Selisih antarnilai: ${U(2) - U(1)}, ${U(3) - U(2)}, ${U(4) - U(3)} (bertambah 2), sehingga polanya kuadrat: nilai = n² ${c < 0 ? '− ' + (-c) : '+ ' + c}. Maka No. ${k}: ${k}² ${c < 0 ? '− ' + (-c) : '+ ' + c} = ${fmt(U(k))}. (Jebakan: menganggap barisan aritmetika memberi ${fmt(lin)}.)`,
+        numeric: true
+      };
+    }
+    if (type === 1) { // selisih bertingkat
+      const a = R(r, 2, 20), d = R(r, 1, 6), dd = pick(r, [2, 3, 4]);
+      const U = n => a + (n - 1) * d + (n - 1) * (n - 2) / 2 * dd;
+      const lin = U(4) + (k - 4) * (U(4) - U(3));
+      return {
+        q: 'Perhatikan tabel berikut!' + tableNo(rows4(U).concat(dots, [[k, '<b>?</b>']])) + 'Nilai yang tepat untuk menggantikan tanda <b>?</b> adalah ….',
+        o: numOpts(r, U(k), { step: Math.max(3, Math.round(U(k) * 0.06)), extra: [lin, U(k) + dd, U(k) - dd] }),
+        e: `Selisih tingkat 1: ${U(2) - U(1)}, ${U(3) - U(2)}, ${U(4) - U(3)}; selisih tingkat 2 tetap ${dd}. Nilai = ${a} + (n−1)×${d} + (n−1)(n−2)/2 × ${dd}. Untuk n = ${k}: ${fmt(U(k))}.`,
+        numeric: true
+      };
+    }
+    if (type === 2) { // n(n + c)
+      const c = R(r, 1, 5);
+      const U = n => n * (n + c);
+      return {
+        q: 'Perhatikan tabel berikut!' + tableNo(rows4(U).concat(dots, [[k, '<b>?</b>']])) + 'Nilai yang tepat untuk menggantikan tanda <b>?</b> adalah ….',
+        o: numOpts(r, U(k), { step: Math.max(3, Math.round(U(k) * 0.07)), extra: [k * k, U(k) + k] }),
+        e: `Perhatikan: ${U(1)} = 1×${1 + c}, ${U(2)} = 2×${2 + c}, ${U(3)} = 3×${3 + c}. Pola: nilai = n × (n + ${c}). Untuk n = ${k}: ${k} × ${k + c} = ${fmt(U(k))}.`,
+        numeric: true
+      };
+    }
+    if (type === 3) { // n³ + c
+      const c = R(r, -4, 9), kk = R(r, 6, 10);
+      const U = n => n * n * n + c;
+      return {
+        q: 'Perhatikan tabel berikut!' + tableNo(rows4(U).concat(dots, [[kk, '<b>?</b>']])) + 'Nilai yang tepat untuk menggantikan tanda <b>?</b> adalah ….',
+        o: numOpts(r, U(kk), { step: Math.max(5, Math.round(U(kk) * 0.06)), extra: [kk * kk + c, U(kk - 1)], allowNeg: true }),
+        e: `Nilai: ${U(1)}, ${U(2)}, ${U(3)}, ${U(4)} = 1³, 2³, 3³, 4³ ${c < 0 ? '− ' + (-c) : '+ ' + c}. Maka No. ${kk}: ${kk}³ ${c < 0 ? '− ' + (-c) : '+ ' + c} = ${fmt(U(kk))}.`,
+        numeric: true
+      };
+    }
+    // mencari nomor dari nilai pada pola n² + c
+    const c = R(r, 1, 15), n = R(r, 8, 20);
+    const U = m => m * m + c;
+    return {
+      q: 'Perhatikan tabel berikut!' + tableNo(rows4(U).concat(dots, [['<b>?</b>', fmt(U(n))]])) + 'Nomor yang tepat untuk menggantikan tanda <b>?</b> adalah ….',
+      o: numOpts(r, n, { step: 1 }),
+      e: `Pola: nilai = n² + ${c} (selisih bertingkat 3, 5, 7, …). Dari n² + ${c} = ${fmt(U(n))} diperoleh n² = ${n * n}, sehingga n = ${n}.`,
+      numeric: true
+    };
+  }
+
+  /* ============ KECUKUPAN PERNYATAAN: 3 keluarga tambahan ============ */
+  const kdFamilies2 = [
+    function labaKD(r) {
+      const [A, B] = pick(r, [['Barang A', 'Barang B'], ['Produk P', 'Produk Q'], ['Jenis X', 'Jenis Y'], ['Paket 1', 'Paket 2']]);
+      const bA = R(r, 2, 8) * 50, pA = pick(r, [20, 30, 40, 50]), d = pick(r, [30, 40, 50, 60]);
+      const xB = bA - d, pB = pick(r, [20, 30, 40, 50, 60]);
+      const jA = bA + pA, jB = xB + pB, tot = pA + pB;
+      const table = tbl(['Barang', 'Harga Beli', 'Harga Jual'], [[A, 'Rp' + bA + ' ribu', 'Rp' + jA + ' ribu'], [B, 'Rp<i>x</i> ribu', 'Rp' + jB + ' ribu']]);
+      const Q = `Berapakah total laba dari penjualan kedua barang tersebut?`;
+      const ex = `Laba total = (${jA} − ${bA}) + (${jB} − x); perlu nilai x (x = ${xB}, laba total = Rp${tot} ribu).`;
+      const cfg = R(r, 0, 4);
+      if (cfg === 0) return kdBuild(table, Q, `Harga beli ${B} adalah Rp${xB} ribu.`, `${B} dijual melalui toko daring.`, 'A', ex + ' Pernyataan (1) memberi x langsung; (2) tidak relevan.');
+      if (cfg === 1) return kdBuild(table, Q, `${A} diproduksi oleh pabrik yang sama dengan ${B}.`, `Laba penjualan ${B} adalah Rp${pB} ribu.`, 'B', ex + ` Dari (2): laba ${B} = ${pB}, laba ${A} = ${jA} − ${bA} = ${pA}. Pernyataan (1) tidak relevan.`);
+      if (cfg === 2) return kdBuild(table, Q, `Harga beli ${B} adalah Rp${xB} ribu.`, `Laba penjualan ${B} adalah Rp${pB} ribu.`, 'D', ex + ' Masing-masing pernyataan menentukan laba ' + B + '.');
+      if (cfg === 3) return kdBuild(table, Q, `Harga beli ${B} lebih rendah daripada harga beli ${A}.`, `Selisih harga beli ${A} dan ${B} adalah Rp${d} ribu.`, 'C', ex + ` (1) hanya perbandingan dan (2) memberi dua kemungkinan x (${bA - d} atau ${bA + d}); bersama-sama x = ${bA} − ${d} = ${xB}.`);
+      return kdBuild(table, Q, `${B} lebih cepat terjual daripada ${A}.`, `Penjualan ${B} dilakukan pada bulan yang sama dengan ${A}.`, 'E', ex + ' Tidak ada pernyataan yang menentukan x.');
+    },
+    function persenKD(r) {
+      const [X, Y] = pick(r, [['Kelas X', 'Kelas Y'], ['Kelas A', 'Kelas B'], ['Kelompok 1', 'Kelompok 2'], ['Regu P', 'Regu Q']]);
+      const nX = R(r, 2, 6) * 10, pX = pick(r, [60, 70, 80, 90]);
+      let m = R(r, 1, 4) * 20; if (m === nX) m += 20;
+      const pY = pick(r, [50, 60, 75, 80, 90]);
+      const lX = nX * pX / 100, lY = m * pY / 100, tot = lX + lY;
+      const table = tbl(['Kelompok', 'Jumlah Anggota', 'Persentase Lulus'], [[X, nX + ' orang', pX + '%'], [Y, '<i>m</i> orang', pY + '%']]);
+      const Q = 'Berapakah banyak peserta yang lulus dari kedua kelompok?';
+      const ex = `Lulus total = ${lX} + ${pY}% × m; perlu nilai m (m = ${m}, lulus total = ${tot} orang).`;
+      const cmp = `Jumlah anggota ${Y} lebih ${m > nX ? 'banyak' : 'sedikit'} daripada ${X}.`;
+      const cfg = R(r, 0, 4);
+      if (cfg === 0) return kdBuild(table, Q, `Jumlah anggota ${Y} adalah ${m} orang.`, `Pembimbing ${Y} adalah orang yang berpengalaman.`, 'A', ex + ' Pernyataan (1) memberi m langsung; (2) tidak relevan.');
+      if (cfg === 1) return kdBuild(table, Q, `Kedua kelompok berlatih di tempat yang sama secara bergantian.`, `Jumlah anggota kedua kelompok adalah ${nX + m} orang.`, 'B', ex + ` Dari (2): m = ${nX + m} − ${nX} = ${m}. Pernyataan (1) tidak relevan.`);
+      if (cfg === 2) return kdBuild(table, Q, `Jumlah anggota ${Y} adalah ${m} orang.`, `Jumlah anggota kedua kelompok adalah ${nX + m} orang.`, 'D', ex + ' Masing-masing pernyataan menentukan m.');
+      if (cfg === 3) return kdBuild(table, Q, `Jumlah anggota ${Y} sama dengan dua kali jumlah anggota Kelompok Z.`, `Jumlah anggota Kelompok Z adalah ${m / 2} orang.`, 'C', ex + ` Gabungan: m = 2 × ${m / 2} = ${m}. Satu pernyataan saja tidak cukup.`);
+      return kdBuild(table, Q, cmp, `${Y} lebih unggul dalam perlombaan olahraga.`, 'E', ex + ' Tidak ada pernyataan yang menentukan m secara pasti.');
+    },
+    function duaBilanganKD(r) {
+      const p = R(r, 5, 30), q = R(r, 3, Math.min(20, p - 1));
+      const k = R(r, 2, 9), m = R(r, 2, 5), j = R(r, 1, 9);
+      const Q = 'Jika p dan q adalah bilangan bulat positif, berapakah nilai p?';
+      const ex = `Nilai p = ${p} (dan q = ${q}).`;
+      const cfg = R(r, 0, 4);
+      if (cfg === 0) return kdBuild('', Q, `p + ${k} = ${p + k}.`, `q adalah bilangan ${q % 2 ? 'ganjil' : 'genap'}.`, 'A', ex + ' Pernyataan (1) langsung menentukan p; (2) tidak membantu.');
+      if (cfg === 1) return kdBuild('', Q, 'p lebih besar daripada q.', `${m}p = ${m * p}.`, 'B', ex + ' Pernyataan (2) menentukan p; (1) hanya perbandingan.');
+      if (cfg === 2) return kdBuild('', Q, `p + q = ${p + q}.`, `p − q = ${p - q}.`, 'C', ex + ` Sendiri-sendiri banyak kemungkinan; bersama-sama p = (${p + q} + ${p - q})/2 = ${p}.`);
+      if (cfg === 3) return kdBuild('', Q, `${m}p − ${j} = ${m * p - j}.`, `p² = ${p * p}.`, 'D', ex + ' (1) memberi p langsung; (2) juga, karena p bilangan positif.');
+      return kdBuild('', Q, `p + q = ${p + q}.`, 'p lebih besar daripada q.', 'E', ex + ` Banyak pasangan (p, q) yang memenuhi, mis. (${p}, ${q}) dan (${p + 1}, ${q - 1}); p tidak tunggal.`);
+    }
+  ];
+  function kecukupan2(r, i) { return kdFamilies2[i % kdFamilies2.length](r); }
+
   bank.register({ key: 'tiu-deret', cat: 'TIU', group: 'num-deret', label: 'Deret Angka', count: 450, make: deret });
   bank.register({ key: 'tiu-tabel1', cat: 'TIU', group: 'num-tabel', label: 'Pola Bilangan Tabel Tipe I', count: 700, make: polaTabel1 });
   bank.register({ key: 'tiu-tabel2', cat: 'TIU', group: 'num-tabel', label: 'Pola Bilangan Tabel Tipe II', count: 700, make: polaTabel2 });
   bank.register({ key: 'tiu-cerita', cat: 'TIU', group: 'num-cerita', label: 'Soal Cerita (Aritmetika)', count: 520, make: soalCerita });
   bank.register({ key: 'tiu-kecukupan', cat: 'TIU', group: 'num-kecukupan', label: 'Kecukupan Pernyataan', count: 630, make: kecukupan });
+  bank.register({ key: 'tiu-tabel1b', cat: 'TIU', group: 'num-tabel', label: 'Pola Bilangan Tabel Tipe I', count: 500, make: polaTabel1b });
+  bank.register({ key: 'tiu-tabel3', cat: 'TIU', group: 'num-tabel', label: 'Pola Bilangan Tabel Tipe II', count: 400, make: polaTabel3 });
+  bank.register({ key: 'tiu-kecukupan2', cat: 'TIU', group: 'num-kecukupan', label: 'Kecukupan Pernyataan', count: 450, make: kecukupan2 });
 })(typeof window !== 'undefined' ? window : globalThis);

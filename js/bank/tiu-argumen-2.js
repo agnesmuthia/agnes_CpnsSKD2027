@@ -134,7 +134,7 @@
     q: `<p class="passage"><i>${t.c}</i></p><p>${ask}</p>`, o, e
   });
 
-  function make(r, i) {
+  function makeWith(T, r, i) {
     const t = T[Math.floor(i / 11) % T.length];
     const v = i % 11;
     const refK = `${t.ref} tersebut`;
@@ -158,5 +158,7 @@
       'Pernyataan yang benar tidak mengurangi dukungan terhadap klaim (netral atau justru mendukung), sedangkan keempat pilihan lain menunjukkan penjelasan alternatif atau kelemahan dalam bukti.');
   }
 
+  root.CPNS.argumenMakeWith = makeWith; // dipakai set topik berikutnya
+  const make = (r, i) => makeWith(T, r, i);
   bank.register({ key: 'tiu-argumen2', cat: 'TIU', group: 'ver-argumen', label: 'Logika Argumen', count: T.length * 11, make });
 })(typeof window !== 'undefined' ? window : globalThis);

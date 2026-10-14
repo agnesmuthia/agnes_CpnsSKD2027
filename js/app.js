@@ -370,6 +370,13 @@
     const h = history().find(x => x.id === id);
     if (!h) { app.innerHTML = '<div class="card"><p>Hasil tidak ditemukan.</p><a class="btn" href="#/">Kembali</a></div>'; return; }
     const g = S.grade(h);
+    // Bila isi soal berubah sejak sesi ini dikerjakan, pakai skor tersimpan dan beri peringatan.
+    const stale = h.chk != null && h.chk !== S.fingerprint(h.ids);
+    if (stale && h.sum) {
+      CATS.forEach(c => { if (g.cats[c].n) { g.cats[c].score = h.sum[c]; g.cats[c].pass = g.cats[c].score >= g.cats[c].pg; } });
+      g.total = h.sum.total;
+      g.pass = CATS.every(c => !g.cats[c].n || g.cats[c].pass);
+    }
     const isFull = h.mode !== 'topik';
     const dur = Math.round((h.end - h.start) / 60000);
     const cats = CATS.filter(c => g.cats[c].n);
@@ -384,6 +391,8 @@
         </div>
         <div class="row"><a class="btn" href="#/">Beranda</a><a class="btn" href="#/riwayat">Riwayat</a></div>
       </section>
+
+      ${stale ? `<div class="banner"><div><b>Soal telah diperbarui.</b> Sebagian soal pada sesi ini berubah sejak Anda mengerjakannya, sehingga rincian per materi dan pembahasan di bawah mungkin tidak cocok dengan jawaban Anda. Skor total dan skor per komponen di atas tetap dari saat Anda mengerjakan.</div></div>` : ''}
 
       <section class="cat-cards">
         ${cats.map(c => {
